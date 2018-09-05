@@ -11,7 +11,6 @@ function read(){
     client.connect(8080, '192.168.1.10', function () {
         console.log('Connected');
     });
-
     client.on('data', function (data) {
         //value = '';
         console.log((''+data).split(',').length);

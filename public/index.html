@@ -22,7 +22,22 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#">Link</a>
                 </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dropdown
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">Action</a>
+                        <a class="dropdown-item" href="#">Another action</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Something else here</a>
+                    </div>
+                </li>
             </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
         </div>
     </nav>
 
@@ -53,9 +68,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
 
     <script>
-        let isPaused = false;
+
         let volt = [];
+        let current = [];
+        let potencia = [];
+        let volt_max = 0;
+        let volt_min = 0;
+        let volt_pico = 0;
+
+        let isPaused = false;
         let label = [];
+
         for(let i = 0; i<1000; i++){
             label [i] = (i+1)+"";
         }
@@ -66,7 +89,7 @@
                 labels: label,
                 datasets: [
                     {
-                        data: volt,
+                        data: [],
                         label: "voltaje",
                         borderColor: "#3e95cd",
                         fill: true
@@ -123,17 +146,25 @@
                 if (isPaused)
                     return;
                 $.ajax({url: "/view", success: function(data){
-                    console.log(data.message);
+                    //console.log(data.message.voltaje);
+
+                    volt = data.message.voltaje;
+                    console.log(volt)
+                        return;
+                    current = data.message.corriente;
+
                     c.data.datasets.forEach((dataset) => {
                         dataset.data= [];
                     });
-                    if(data.message === null)
+
+                    if(volt === null)
                         return;
-                    for (let i = 0; i<data.message.length; i++){
-                        if(data.message[i]!==null && data[i]!==0){
-                            addData(round(data.message[i], 2))
+
+                    for (let i = 0; i<volt.length; i++){
+                        if(volt[i]!==null && volt[i]!==0){
+                            addData(round(volt[i], 2))
                             c.data.datasets.forEach((dataset) => {
-                                dataset.data.push(round(data.message[i]-1.5, 2));
+                                dataset.data.push(round(volt[i], 2));
                             });
 
                         }
@@ -141,7 +172,7 @@
                     c.update();
                 }});
 
-            }, 2500);
+            }, 1500);
             /*
             setInterval(function () {
                 if (isPaused)
@@ -176,7 +207,6 @@
         function round(value, decimals) {
             return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
         }
-
     </script>
 </body>
 </html>
