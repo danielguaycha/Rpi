@@ -13,6 +13,8 @@ let default_config = {
     change_canal : false,
     contactor: '',
     canal: '2',
+    multiplex: '0',
+    change_multiplex: false,
     n_medidas: 500,
     vel_data: 1200000
 };
@@ -44,10 +46,16 @@ app.get('/', function (req, res) {
 });
 
 app.get('/lecturas', function (req, res) {
+
     let url_parts = url.parse(req.url,true);
+
     default_config['canal'] = url_parts.query.q;
     default_config['change_canal'] = true;
     default_config['change_contactor'] = false;
+
+    default_config['multiplex'] = (url_parts.query.m === undefined)?'0':url_parts.query.m;
+    default_config['change_multiplex'] = (url_parts.query.m !== undefined && parseInt(url_parts.query.m)<=16 && parseInt(url_parts.query.m)>=0 );
+
     client.publish("/iotmach/contactor/", JSON.stringify(default_config));
 
     res.sendFile(path.join(__dirname, '/public/lectura.html'));

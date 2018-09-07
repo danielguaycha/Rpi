@@ -54,11 +54,11 @@
                         <li><a href="/lecturas?q=0"><i class="fa fa-circle-o text-aqua"></i>Voltaje 110 L1</a></li>
                         <li><a href="/lecturas?q=1"><i class="fa fa-circle-o text-aqua"></i>Voltaje 110 L2</a></li>
                         <li><a href="/lecturas?q=2"><i class="fa fa-circle-o text-aqua"></i>Voltaje 220</a></li>
-                        <li><a href="/lecturas?q=3"><i class="fa fa-circle-o text-aqua"></i>TC # 1</a></li>
-                        <li><a href="/lecturas?q=4"><i class="fa fa-circle-o text-aqua"></i>TC # 2</a></li>
-                        <li><a href="/lecturas?q=5"><i class="fa fa-circle-o text-aqua"></i>TC # 3</a></li>
-                        <li><a href="/lecturas?q=6"><i class="fa fa-circle-o text-aqua"></i>TC # 4</a></li>
-                        <li><a href="/lecturas?q=7"><i class="fa fa-circle-o text-aqua"></i>TC # 5</a></li>
+                        <li><a href="/lecturas?q=3&m=0"><i class="fa fa-circle-o text-aqua"></i>TC # 1</a></li>
+                        <li><a href="/lecturas?q=3&m=1"><i class="fa fa-circle-o text-aqua"></i>TC # 2</a></li>
+                        <li><a href="/lecturas?q=3&m=2"><i class="fa fa-circle-o text-aqua"></i>TC # 3</a></li>
+                        <li><a href="/lecturas?q=3&m=3"><i class="fa fa-circle-o text-aqua"></i>TC # 4</a></li>
+                        <li><a href="/lecturas?q=3&m=4"><i class="fa fa-circle-o text-aqua"></i>TC # 5</a></li>
                     </ul>
                 </li>
 
@@ -76,6 +76,30 @@
         </section>
 
         <section class="content container-fluid">
+            <div class="row">
+                <div class="col-lg-6 col-xs-6">
+                    <div class="small-box bg-aqua">
+                        <div class="inner">
+                            <h3 id="pico-max">0</h3>
+                            <p>Voltaje Pico Max</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-stats-bars"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-xs-6">
+                    <div class="small-box bg-blue">
+                        <div class="inner">
+                            <h3 id="pico-min">0</h3>
+                            <p>Voltaje Pico Min</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-stats-bars"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="box box-primary direct-chat direct-chat-primary">
                 <div class="box-header with-border">
                     <h3 class="box-title">Voltaje</h3>
@@ -120,6 +144,7 @@
         let isPaused = false;
         let volt = [];
         let label = [];
+
         for(let i = 0; i<500; i++){
             label [i] = (i+1)+"";
         }
@@ -149,21 +174,19 @@
                     yAxes: [{
                         display: true,
                         ticks: {
-                            min: -3.5,
-                            max: 3.5,
-                            maxTicksLimit: 10,
-                            stepSize: 0.5,
-                            suggestedMin: 10,    // minimum will be 0, unless there is a lower value.
+                            min: -1.5,
+                            max: 1.5,
+                            maxTicksLimit: 40,
                             // OR //
-                            beginAtZero: true   // minimum value will be 0.
                         }
                     }],
                     xAxes: [{
                         display: true,
                         ticks: {
-                            maxTicksLimit: 10,
-                            stepSize: 10,
-                            suggestedMin: 10,    // minimum will be 0, unless there is a lower value.
+                            maxTicksLimit: 31.5,
+                            stepSize: 200,
+                            minTicksLimit: 20,
+                            suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
                             // OR //
                             beginAtZero: true   // minimum value will be 0.
                         }
@@ -182,12 +205,16 @@
         });
 
         let tmpData = [];
+
         $(document).ready(function () {
             setInterval(function(){
                 if (isPaused)
                     return;
                 $.ajax({url: "/view", success: function(data){
                     volt = data.message.voltaje;
+
+                    $('#pico-max').html(round(getMax(volt), 2));
+                    $('#pico-min').html(round(getMin(volt), 2));
 
                     console.log(volt);
                     
@@ -208,23 +235,6 @@
                 }});
 
             }, 1500);
-            /*
-            setInterval(function () {
-                if (isPaused)
-                    return;
-                for (let i=0; i<100; i++){
-                    c.data.datasets.forEach((dataset) => {
-                        dataset.data.push(tmpData[i]);
-                    });
-                }
-                tmpData.splice(0,  100);
-                c.data.datasets.forEach((dataset) => {
-                    dataset.data.splice(0,100);
-                });
-                c.update();
-                $('.count').html(tmpData.length)
-
-            },1000);*/
 
             $('#pause').click(function () {
                 isPaused = true;
@@ -233,6 +243,50 @@
                 isPaused = false;
             })
         });
+
+        function getMax(arr){ //0,707
+            let tmp = [];
+            let suma = 0;
+            let tot = 0;
+            for (let i=0; i<arr.length; i++){
+                if(arr[i-1] !=null && arr[i+1]!=null){
+                    if(arr[i]>arr[i-1] && arr[i]>arr[i+1]){
+                        tmp.push(arr[i]);
+                    }
+                }
+            }
+            for (let i=0; i<tmp.length; i++){
+                if(tmp[i-1] !=null && tmp[i+1]!=null){
+                    if(tmp[i]>=tmp[i-1] && tmp[i]>=tmp[i+1]){
+                        suma+=tmp[i];
+                        tot++;
+                    }
+                }
+            }
+            return suma/tot;
+        }
+
+        function getMin(arr) {
+            let tmp = [];
+            let suma = 0;
+            let tot = 0;
+            for (let i=0; i<arr.length; i++){
+                if(arr[i-1] !=null && arr[i+1]!=null){
+                    if(arr[i]<arr[i-1] && arr[i]<arr[i+1]){
+                        tmp.push(arr[i]);
+                    }
+                }
+            }
+            for (let i=0; i<tmp.length; i++){
+                if(tmp[i-1] !=null && tmp[i+1]!=null){
+                    if(tmp[i]<=tmp[i-1] && tmp[i]<=tmp[i+1]){
+                        suma+=tmp[i];
+                        tot++;
+                    }
+                }
+            }
+            return suma/tot;
+        }
 
         function addData(d) {
             tmpData.push(d);
